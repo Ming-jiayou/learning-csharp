@@ -2,68 +2,88 @@
 {
     internal class Program
     {     
-    // 抽象类
-    public abstract class Abstraction
-    {
-        protected IImplementor implementor;
-
-        public Abstraction(IImplementor implementor)
+      
+         // 实现接口 - 图像格式
+        public interface IImageFormat
         {
-            this.implementor = implementor;
+            void Display(string fileName);
         }
 
-        public virtual void Operation()
+        // 具体实现 - PNG格式
+        public class PNGFormat : IImageFormat
         {
-            implementor.OperationImpl();
-        }
-    }
-
-    // 具体抽象类
-    public class RefinedAbstraction : Abstraction
-    {
-        public RefinedAbstraction(IImplementor implementor) : base(implementor)
-        {
+            public void Display(string fileName)
+            {
+                Console.WriteLine($"Displaying {fileName} in PNG format.");
+            }
         }
 
-        public override void Operation()
+        // 具体实现 - JPG格式
+        public class JPGFormat : IImageFormat
         {
-            base.Operation();
-            Console.WriteLine("RefinedAbstraction Operation");
+            public void Display(string fileName)
+            {
+                Console.WriteLine($"Displaying {fileName} in JPG format.");
+            }
         }
-    }
 
-    // 实现接口
-    public interface IImplementor
-    {
-        void OperationImpl();
-    }
-
-    // 具体实现类A
-    public class ConcreteImplementorA : IImplementor
-    {
-        public void OperationImpl()
+        // 抽象 - 操作系统
+        public abstract class OperatingSystem
         {
-            Console.WriteLine("ConcreteImplementorA Operation");
-        }
-    }
+            protected IImageFormat imageFormat; // 桥接接口
 
-    // 具体实现类B
-    public class ConcreteImplementorB : IImplementor
-    {
-        public void OperationImpl()
+            public OperatingSystem(IImageFormat imageFormat)
+            {
+                this.imageFormat = imageFormat;
+                Console.WriteLine("Initializing OperatingSystem...");
+            }
+
+            public abstract void OpenImage(string fileName);
+        }
+
+        // 扩展抽象 - Windows操作系统
+        public class WindowsOS : OperatingSystem
         {
-            Console.WriteLine("ConcreteImplementorB Operation");
+            public WindowsOS(IImageFormat imageFormat) : base(imageFormat)
+            { 
+                Console.WriteLine("Initializing WindowsOS...");
+            }
+
+            public override void OpenImage(string fileName)
+            {
+                Console.WriteLine("Windows: Opening image...");
+                imageFormat.Display(fileName);
+            }
         }
-    }
 
-    // 在Main方法中使用桥接模式
-    static void Main(string[] args)
-    {
-        Abstraction abstractionA = new RefinedAbstraction(new ConcreteImplementorA());
-        abstractionA.Operation();
+        // 扩展抽象 - macOS操作系统
+        public class MacOS : OperatingSystem
+        {
+            public MacOS(IImageFormat imageFormat) : base(imageFormat) { }
 
-        Abstraction abstractionB = new RefinedAbstraction(new ConcreteImplementorB());
-        abstractionB.Operation();
-    }
+            public override void OpenImage(string fileName)
+            {
+                Console.WriteLine("macOS: Opening image...");
+                imageFormat.Display(fileName);
+            }
+        }
+       
+        // 在Main方法中使用桥接模式
+        static void Main(string[] args)
+        {
+                // 创建格式实例
+                IImageFormat pngFormat = new PNGFormat();
+                IImageFormat jpgFormat = new JPGFormat();
+
+                // 创建操作系统实例，并与格式实例桥接
+                OperatingSystem windowsWithPNG = new WindowsOS(pngFormat);
+                OperatingSystem macWithJPG = new MacOS(jpgFormat);
+                OperatingSystem windowsWithJPG = new WindowsOS(jpgFormat); // 易扩展性示例
+
+                // 演示
+                windowsWithPNG.OpenImage("image1.png");
+                macWithJPG.OpenImage("image2.jpg");
+                windowsWithJPG.OpenImage("image3.jpg");
+        }
     }
 }
